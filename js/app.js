@@ -8,13 +8,11 @@ function initApp() {
     const currentPage = window.location.pathname.split('/').pop();
 
     if (currentPage === 'index.html' || currentPage === '') {
-        // Si ya está logueado, redirigir al dashboard
         if (SessionService.isLoggedIn()) {
             window.location.href = 'dashboard.html';
         }
         setupLogin();
     } else if (currentPage === 'dashboard.html') {
-        // Si no está logueado, redirigir al login
         if (!SessionService.isLoggedIn()) {
             window.location.href = 'index.html';
         }
@@ -32,18 +30,18 @@ function setupLogin() {
 
     if (!form) return;
 
-    // Limpiar alertas cuando el usuario escribe
+    // Limpiar validaciones cuando el usuario escribe
     [rutInput, emailInput, passwordInput].forEach(input => {
         input.addEventListener('input', () => {
+            input.classList.remove('is-invalid', 'is-valid');
             alertContainer.classList.add('d-none');
             alertContainer.textContent = '';
-            input.classList.remove('is-invalid', 'is-valid');
         });
     });
 
     form.addEventListener('submit', (e) => {
         e.preventDefault();
-        console.log('📝 Intentando login...');
+        console.log('🔍 Iniciando validación...');
         
         const rut = rutInput.value.trim();
         const email = emailInput.value.trim();
@@ -56,32 +54,85 @@ function setupLogin() {
             input.classList.remove('is-invalid', 'is-valid');
         });
 
+        let hasError = false;
+
+        // Validar RUT manualmente
+        if (!rut || !ValidatorRut(rut)) {
+            rutInput.classList.add('is-invalid');
+            hasError = true;
+            console.log('❌ RUT inválido:', rut);
+        } else {
+            rutInput.classList.add('is-valid');
+            console.log('✅ RUT válido:', rut);
+        }
+
+        // Validar correo manualmente
+        if (!email || !ValidatorEmail(email)) {
+            emailInput.classList.add('is-invalid');
+            hasError = true;
+            console.log('❌ Correo inválido:', email);
+        } else {
+            emailInput.classList.add('is-valid');
+            console.log('✅ Correo válido:', email);
+        }
+
+        // Validar contraseña manualmente
+        if (!password || !ValidatorPassword(password)) {
+            passwordInput.classList.add('is-invalid');
+            hasError = true;
+            console.log('❌ Contraseña inválida');
+        } else {
+            passwordInput.classList.add('is-valid');
+            console.log('✅ Contraseña válida');
+        }
+
+        if (hasError) {
+            alertContainer.textContent = 'Por favor, corrige los errores marcados.';
+            alertContainer.classList.remove('d-none');
+            return;
+        }
+
+        // Si todo está válido, intentar login
         try {
-            console.log(' Datos ingresados - RUT:', rut, '| Email:', email, '| Password length:', password.length);
-            
             const user = authService.login(rut, email, password);
-            
             console.log('✅ Login exitoso:', user);
-            // Redirección según rol (Criterio 3)
             window.location.href = `dashboard.html?rol=${user.role}`;
-            
         } catch (error) {
-            console.error('❌ Error de validación:', error.message);
-            
-            // Mostrar mensaje de error (Criterio 4)
+            console.error('❌ Error de credenciales:', error.message);
             alertContainer.textContent = error.message;
             alertContainer.classList.remove('d-none');
-            
-            // Marcar campos inválidos
-            if (error.message.includes('RUT')) {
-                rutInput.classList.add('is-invalid');
-            } else if (error.message.includes('correo')) {
-                emailInput.classList.add('is-invalid');
-            } else if (error.message.includes('contraseña')) {
-                passwordInput.classList.add('is-invalid');
-            }
+            // No marcar campos como inválidos si el error es de credenciales
         }
     });
+}
+
+// Validadores simples (puedes importar desde Validator.js si prefieres)
+function ValidatorRut(rut) {
+    rut = rut.replace(/\s/g, '').replace(/\./g, '').toUpperCase();
+    const body = rut.slice(0, -1);
+    const dv = rut.slice(-1);
+    
+    if (body.length < 7 || !/^\d+$/.test(body)) return false;
+
+    let sum = 0;
+    let multiplier = 2;
+    for (let i = body.length - 1; i >= 0; i--) {
+        sum += parseInt(body.charAt(i)) * multiplier;
+        multiplier = multiplier === 7 ? 2 : multiplier + 1;
+    }
+    const expectedDv = 11 - (sum % 11);
+    const calculatedDv = expectedDv === 11 ? '0' : expectedDv === 10 ? 'K' : expectedDv.toString();
+    
+    return calculatedDv === dv;
+}
+
+function ValidatorEmail(email) {
+    const domainRegex = /^[a-zA-Z0-9._%+-]+@(inacap\.cl|inacapmail\.cl)$/i;
+    return domainRegex.test(email);
+}
+
+function ValidatorPassword(password) {
+    return password.length >= 8 && /[a-z]/.test(password) && /[A-Z]/.test(password) && /\d/.test(password);
 }
 
 // Lógica del Dashboard
@@ -103,5 +154,4 @@ function setupDashboard() {
     }
 }
 
-// Iniciar aplicación
 document.addEventListener('DOMContentLoaded', initApp);
