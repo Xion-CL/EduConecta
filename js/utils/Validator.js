@@ -8,21 +8,16 @@ export class Validator {
             return false;
         }
         
-        // Limpiar RUT
-        rut = rut.replace(/\s/g, '').replace(/\./g, '').toUpperCase();
+        // Limpiar RUT (quitar puntos y espacios)
+        rut = rut.replace(/\./g, '').replace(/\s/g, '').toUpperCase();
         
-        // Debe tener al menos 7 dígitos + DV
-        if (rut.length < 8) {
-            console.log('❌ RUT muy corto');
-            return false;
-        }
-        
+        // Separar cuerpo y dígito verificador
         const body = rut.slice(0, -1);
         const dv = rut.slice(-1);
         
-        // El cuerpo debe ser solo números
-        if (!/^\d+$/.test(body)) {
-            console.log('❌ RUT contiene letras en el cuerpo');
+        // Validar que el cuerpo tenga al menos 7 dígitos y sean todos números
+        if (body.length < 7 || !/^\d+$/.test(body)) {
+            console.log('❌ RUT inválido: cuerpo incorrecto');
             return false;
         }
         
@@ -30,16 +25,27 @@ export class Validator {
         let sum = 0;
         let multiplier = 2;
         
+        // Recorrer de derecha a izquierda
         for (let i = body.length - 1; i >= 0; i--) {
             sum += parseInt(body.charAt(i)) * multiplier;
             multiplier = multiplier === 7 ? 2 : multiplier + 1;
         }
         
-        const expectedDv = 11 - (sum % 11);
-        const calculatedDv = expectedDv === 11 ? '0' : expectedDv === 10 ? 'K' : expectedDv.toString();
+        const remainder = sum % 11;
+        const expectedDv = 11 - remainder;
+        
+        // Calcular DV esperado
+        let calculatedDv;
+        if (expectedDv === 11) {
+            calculatedDv = '0';
+        } else if (expectedDv === 10) {
+            calculatedDv = 'K';
+        } else {
+            calculatedDv = expectedDv.toString();
+        }
         
         const isValid = calculatedDv === dv;
-        console.log('✅ RUT válido:', isValid, '- DV calculado:', calculatedDv, '- DV ingresado:', dv);
+        console.log('✅ RUT válido:', isValid, '| DV calculado:', calculatedDv, '| DV ingresado:', dv);
         
         return isValid;
     }
@@ -49,7 +55,7 @@ export class Validator {
         console.log('🔍 Validando correo:', email);
         
         if (!email || typeof email !== 'string') {
-            console.log(' Correo vacío');
+            console.log('❌ Correo vacío');
             return false;
         }
         
@@ -64,7 +70,7 @@ export class Validator {
 
     // Valida contraseña segura
     static validatePassword(password) {
-        console.log(' Validando contraseña, longitud:', password ? password.length : 0);
+        console.log('🔍 Validando contraseña, longitud:', password ? password.length : 0);
         
         if (!password || password.length < 8) {
             console.log('❌ Contraseña muy corta (< 8 caracteres)');
@@ -75,7 +81,7 @@ export class Validator {
         const hasUppercase = /[A-Z]/.test(password);
         const hasNumber = /\d/.test(password);
         
-        console.log('Mayúscula:', hasLowercase, 'Minúscula:', hasUppercase, 'Número:', hasNumber);
+        console.log('Mayúscula:', hasUppercase, 'Minúscula:', hasLowercase, 'Número:', hasNumber);
         
         const isValid = hasLowercase && hasUppercase && hasNumber;
         console.log('✅ Contraseña válida:', isValid);

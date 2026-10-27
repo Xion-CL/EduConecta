@@ -1,9 +1,9 @@
 import { AuthService } from './services/AuthService.js';
 import { SessionService } from './services/SessionService.js';
+import { Validator } from './utils/Validator.js';
 
 const authService = new AuthService();
 
-// Función para inicializar la app según la página
 function initApp() {
     const currentPage = window.location.pathname.split('/').pop();
 
@@ -20,7 +20,6 @@ function initApp() {
     }
 }
 
-// Lógica del Login
 function setupLogin() {
     const form = document.getElementById('loginForm');
     const alertContainer = document.getElementById('alertContainer');
@@ -34,8 +33,10 @@ function setupLogin() {
     [rutInput, emailInput, passwordInput].forEach(input => {
         input.addEventListener('input', () => {
             input.classList.remove('is-invalid', 'is-valid');
-            alertContainer.classList.add('d-none');
-            alertContainer.textContent = '';
+            if (alertContainer) {
+                alertContainer.classList.add('d-none');
+                alertContainer.textContent = '';
+            }
         });
     });
 
@@ -48,94 +49,78 @@ function setupLogin() {
         const password = passwordInput.value;
 
         // Limpiar estado previo
-        alertContainer.classList.add('d-none');
-        alertContainer.textContent = '';
+        if (alertContainer) {
+            alertContainer.classList.add('d-none');
+            alertContainer.textContent = '';
+        }
         [rutInput, emailInput, passwordInput].forEach(input => {
             input.classList.remove('is-invalid', 'is-valid');
         });
 
+        let errorMessage = '';
         let hasError = false;
 
-        // Validar RUT manualmente
-        if (!rut || !ValidatorRut(rut)) {
+        // Validar RUT
+        if (!Validator.validateRut(rut)) {
             rutInput.classList.add('is-invalid');
+            errorMessage = 'El RUT ingresado no es válido.';
             hasError = true;
-            console.log('❌ RUT inválido:', rut);
+            console.log('❌ Error: RUT inválido');
         } else {
             rutInput.classList.add('is-valid');
-            console.log('✅ RUT válido:', rut);
         }
 
-        // Validar correo manualmente
-        if (!email || !ValidatorEmail(email)) {
+        // Validar correo (SOLO si el RUT está bien)
+        if (!hasError && !Validator.validateInstitutionalEmail(email)) {
             emailInput.classList.add('is-invalid');
+            errorMessage = 'El correo debe ser institucional (@inacap.cl o @inacapmail.cl).';
             hasError = true;
-            console.log('❌ Correo inválido:', email);
-        } else {
+            console.log('❌ Error: Correo no institucional');
+        } else if (!hasError) {
             emailInput.classList.add('is-valid');
-            console.log('✅ Correo válido:', email);
         }
 
-        // Validar contraseña manualmente
-        if (!password || !ValidatorPassword(password)) {
+        // Validar contraseña (SOLO si RUT y correo están bien)
+        if (!hasError && !Validator.validatePassword(password)) {
             passwordInput.classList.add('is-invalid');
+            errorMessage = 'La contraseña debe tener al menos 8 caracteres, 1 mayúscula, 1 minúscula y 1 número.';
             hasError = true;
-            console.log('❌ Contraseña inválida');
-        } else {
+            console.log('❌ Error: Contraseña inválida');
+        } else if (!hasError) {
             passwordInput.classList.add('is-valid');
-            console.log('✅ Contraseña válida');
         }
 
+        // Si hay error de validación, mostrar mensaje
         if (hasError) {
-            alertContainer.textContent = 'Por favor, corrige los errores marcados.';
-            alertContainer.classList.remove('d-none');
+            if (alertContainer) {
+                alertContainer.textContent = errorMessage;
+                alertContainer.classList.remove('d-none');
+            }
             return;
         }
 
         // Si todo está válido, intentar login
+        console.log('✅ Todas las validaciones pasaron. Intentando login...');
         try {
             const user = authService.login(rut, email, password);
             console.log('✅ Login exitoso:', user);
-            window.location.href = `dashboard.html?rol=${user.role}`;
+            
+            // Redirección según rol
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 300);
+            
         } catch (error) {
             console.error('❌ Error de credenciales:', error.message);
-            alertContainer.textContent = error.message;
-            alertContainer.classList.remove('d-none');
-            // No marcar campos como inválidos si el error es de credenciales
+            if (alertContainer) {
+                alertContainer.textContent = error.message;
+                alertContainer.classList.remove('d-none');
+            }
+            // No marcar campos como inválidos si es error de credenciales
         }
     });
 }
 
-// Validadores simples (puedes importar desde Validator.js si prefieres)
-function ValidatorRut(rut) {
-    rut = rut.replace(/\s/g, '').replace(/\./g, '').toUpperCase();
-    const body = rut.slice(0, -1);
-    const dv = rut.slice(-1);
-    
-    if (body.length < 7 || !/^\d+$/.test(body)) return false;
-
-    let sum = 0;
-    let multiplier = 2;
-    for (let i = body.length - 1; i >= 0; i--) {
-        sum += parseInt(body.charAt(i)) * multiplier;
-        multiplier = multiplier === 7 ? 2 : multiplier + 1;
-    }
-    const expectedDv = 11 - (sum % 11);
-    const calculatedDv = expectedDv === 11 ? '0' : expectedDv === 10 ? 'K' : expectedDv.toString();
-    
-    return calculatedDv === dv;
-}
-
-function ValidatorEmail(email) {
-    const domainRegex = /^[a-zA-Z0-9._%+-]+@(inacap\.cl|inacapmail\.cl)$/i;
-    return domainRegex.test(email);
-}
-
-function ValidatorPassword(password) {
-    return password.length >= 8 && /[a-z]/.test(password) && /[A-Z]/.test(password) && /\d/.test(password);
-}
-
-// Lógica del Dashboard
 function setupDashboard() {
     const user = authService.getCurrentUser();
     if (!user) return;
