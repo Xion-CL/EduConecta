@@ -4,11 +4,11 @@ import { SessionService } from './SessionService.js';
 
 export class AuthService {
     constructor() {
-            // Base de datos simulada de usuarios (RUTs VÁLIDOS)
+            // Base de datos simulada de usuarios (RUTs VERIFICADOS)
     this.users = [
-        new User('11.111.111-3', 'admin@inacap.cl', 'Admin123', 'admin', 'Fernando Mancilla'),
-        new User('22.222.222-6', 'profe@inacapmail.cl', 'Profe123', 'docente', 'Luis Tihuel'),
-        new User('33.333.333-9', 'alumno@inacapmail.cl', 'Alumno123', 'estudiante', 'Benjamín Aguayo')
+        new User('11.111.111-1', 'admin@inacap.cl', 'Admin123', 'admin', 'Fernando Mancilla'),
+        new User('12.345.678-5', 'profe@inacapmail.cl', 'Profe123', 'docente', 'Luis Tihuel'),
+        new User('9.999.999-3', 'alumno@inacapmail.cl', 'Alumno123', 'estudiante', 'Benjamín Aguayo')
     ];
     }
 
