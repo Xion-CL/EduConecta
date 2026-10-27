@@ -23,23 +23,34 @@
                         <!-- Alerta de errores -->
                         <div id="alertContainer" class="alert alert-danger d-none" role="alert"></div>
 
-                        <form id="loginForm" novalidate>
+                        <form id="loginForm">
                             <div class="mb-3">
                                 <label for="rut" class="form-label">RUT</label>
-                                <input type="text" class="form-control" id="rut" placeholder="12.345.678-9" required>
-                                <div class="invalid-feedback">Ingresa un RUT válido.</div>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="rut" 
+                                       placeholder="12.345.678-9" 
+                                       autocomplete="off">
+                                <div class="invalid-feedback">Ingresa un RUT válido (ej: 11.111.111-1)</div>
                             </div>
 
                             <div class="mb-3">
                                 <label for="email" class="form-label">Correo Institucional</label>
-                                <input type="email" class="form-control" id="email" placeholder="usuario@inacapmail.cl" required>
-                                <div class="invalid-feedback">Ingresa un correo institucional válido.</div>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="email" 
+                                       placeholder="usuario@inacapmail.cl"
+                                       autocomplete="off">
+                                <div class="invalid-feedback">El correo debe terminar en @inacap.cl o @inacapmail.cl</div>
                             </div>
 
                             <div class="mb-3">
                                 <label for="password" class="form-label">Contraseña</label>
-                                <input type="password" class="form-control" id="password" required>
-                                <div class="invalid-feedback">Mínimo 8 caracteres, 1 mayúscula, 1 minúscula y 1 número.</div>
+                                <input type="password" 
+                                       class="form-control" 
+                                       id="password"
+                                       placeholder="••••••••">
+                                <div class="invalid-feedback">Mínimo 8 caracteres, 1 mayúscula, 1 minúscula y 1 número</div>
                             </div>
 
                             <button type="submit" class="btn btn-primary w-100 py-2">Ingresar</button>

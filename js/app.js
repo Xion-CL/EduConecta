@@ -26,29 +26,60 @@ function initApp() {
 function setupLogin() {
     const form = document.getElementById('loginForm');
     const alertContainer = document.getElementById('alertContainer');
+    const rutInput = document.getElementById('rut');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
 
     if (!form) return;
 
+    // Limpiar alertas cuando el usuario escribe
+    [rutInput, emailInput, passwordInput].forEach(input => {
+        input.addEventListener('input', () => {
+            alertContainer.classList.add('d-none');
+            alertContainer.textContent = '';
+            input.classList.remove('is-invalid', 'is-valid');
+        });
+    });
+
     form.addEventListener('submit', (e) => {
         e.preventDefault();
+        console.log('📝 Intentando login...');
         
-        const rut = document.getElementById('rut').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
+        const rut = rutInput.value.trim();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
 
-        // Limpiar errores previos
+        // Limpiar estado previo
         alertContainer.classList.add('d-none');
-        form.classList.remove('was-validated');
+        alertContainer.textContent = '';
+        [rutInput, emailInput, passwordInput].forEach(input => {
+            input.classList.remove('is-invalid', 'is-valid');
+        });
 
         try {
+            console.log(' Datos ingresados - RUT:', rut, '| Email:', email, '| Password length:', password.length);
+            
             const user = authService.login(rut, email, password);
+            
+            console.log('✅ Login exitoso:', user);
             // Redirección según rol (Criterio 3)
             window.location.href = `dashboard.html?rol=${user.role}`;
+            
         } catch (error) {
+            console.error('❌ Error de validación:', error.message);
+            
             // Mostrar mensaje de error (Criterio 4)
             alertContainer.textContent = error.message;
             alertContainer.classList.remove('d-none');
-            form.classList.add('was-validated');
+            
+            // Marcar campos inválidos
+            if (error.message.includes('RUT')) {
+                rutInput.classList.add('is-invalid');
+            } else if (error.message.includes('correo')) {
+                emailInput.classList.add('is-invalid');
+            } else if (error.message.includes('contraseña')) {
+                passwordInput.classList.add('is-invalid');
+            }
         }
     });
 }
