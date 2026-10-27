@@ -1,0 +1,21 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+    border-radius: 12px;
+}
+
+.btn-primary {
+    background-color: #d31118; /* Color rojo INACAP */
+    border-color: #d31118;
+}
+
+.btn-primary:hover {
+    background-color: #a80d13;
+    border-color: #a80d13;
+}
+
+.navbar {
+    background-color: #d31118 !important;
+}
