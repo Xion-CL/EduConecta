@@ -1,4 +1,4 @@
-import { User } from '..user.js';
+import { User } from '../models/User.js';
 import { Validator } from '../utils/Validator.js';
 import { SessionService } from './SessionService.js';
 
